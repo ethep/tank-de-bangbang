@@ -7,7 +7,7 @@ using System.Linq;
 public class EnemySpawner : MonoBehaviour
 {
     public List<GameObject> enemyPrefabList = new List<GameObject>();
-    public float SpawnInterval = 5.0f;
+    public float SpawnInterval = 10.0f;
     public float RemainingTime;
 
     private void Reset()

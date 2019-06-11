@@ -138,6 +138,7 @@ MonoBehaviour:
   GunEnd: {fileID: 4894741065189252}
   Turret: {fileID: 4358624050430668}
   Barrel: {fileID: 4098630199684048}
+  Collider: {fileID: 65646081000164870}
   ShellSpeed: 50
   TankSpeed: 100
   FireRate: 1

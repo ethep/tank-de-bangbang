@@ -88,11 +88,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4460023710091612}
-  - component: {fileID: 9021868056628513274}
+  - component: {fileID: 8132452772763947186}
   - component: {fileID: 65646081000164870}
   - component: {fileID: 54526886729957252}
   - component: {fileID: 82306494313752940}
-  - component: {fileID: 8132452772763947186}
   m_Layer: 0
   m_Name: Unit_Tank_T34
   m_TagString: Player
@@ -117,7 +116,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9021868056628513274
+--- !u!114 &8132452772763947186
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -126,7 +125,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1085115513000760}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02a9a89939d1f4dadb6e395fbc2fa972, type: 3}
+  m_Script: {fileID: 11500000, guid: 4a74c1db835144b6c876b3fa40a700d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Animator: {fileID: 95010333675597602}
@@ -139,6 +138,7 @@ MonoBehaviour:
   GunEnd: {fileID: 4894741065189252}
   Turret: {fileID: 4358624050430668}
   Barrel: {fileID: 4098630199684048}
+  Collider: {fileID: 65646081000164870}
   ShellSpeed: 50
   TankSpeed: 100
   FireRate: 1
@@ -267,19 +267,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
---- !u!114 &8132452772763947186
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1085115513000760}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a74c1db835144b6c876b3fa40a700d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
 --- !u!1 &1086474240449052
 GameObject:
   m_ObjectHideFlags: 0

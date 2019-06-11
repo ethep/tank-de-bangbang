@@ -38155,11 +38155,10 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4325361983712520}
-  - component: {fileID: 7933280517534246397}
+  - component: {fileID: 4501537994078309613}
   - component: {fileID: 65294745995030166}
   - component: {fileID: 54106341699669542}
   - component: {fileID: 82016367722936904}
-  - component: {fileID: 4501537994078309613}
   m_Layer: 0
   m_Name: Unit_TankStVI
   m_TagString: Enemy
@@ -38184,7 +38183,7 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7933280517534246397
+--- !u!114 &4501537994078309613
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -38193,7 +38192,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1719847535777964}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02a9a89939d1f4dadb6e395fbc2fa972, type: 3}
+  m_Script: {fileID: 11500000, guid: 4a74c1db835144b6c876b3fa40a700d2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   Animator: {fileID: 95758262124766302}
@@ -38206,6 +38205,7 @@ MonoBehaviour:
   GunEnd: {fileID: 4453814034065844}
   Turret: {fileID: 4691289521268484}
   Barrel: {fileID: 4219096765181890}
+  Collider: {fileID: 65294745995030166}
   ShellSpeed: 50
   TankSpeed: 100
   FireRate: 1
@@ -38334,19 +38334,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 0
---- !u!114 &4501537994078309613
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1719847535777964}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a74c1db835144b6c876b3fa40a700d2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  moveSpeed: 5
 --- !u!1 &1743448209128842
 GameObject:
   m_ObjectHideFlags: 0

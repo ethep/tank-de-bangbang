@@ -14,7 +14,6 @@ GameObject:
   - component: {fileID: 114280831994989886}
   - component: {fileID: 65767950994811626}
   - component: {fileID: 54623115701632660}
-  - component: {fileID: 135843656726059730}
   - component: {fileID: 96096321071214686}
   - component: {fileID: 82500193431527450}
   m_Layer: 0
@@ -96,7 +95,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 63d17b3b7d41a204488889bc72ae181a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  lifeTime: 1
   shellDamage: 10
   m_ExplosionParticles: {fileID: 198420370492543742}
   m_ExplosionAudio: {fileID: 82500193431527450}
@@ -109,7 +107,7 @@ BoxCollider:
   m_GameObject: {fileID: 1289775717473216}
   m_Material: {fileID: 0}
   m_IsTrigger: 1
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 2
   m_Size: {x: 0.9, y: 0.22750485, z: 0.9}
   m_Center: {x: 0, y: 0.09632152, z: 0}
@@ -129,19 +127,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!135 &135843656726059730
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1289775717473216}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 0
-  serializedVersion: 2
-  m_Radius: 0.45
-  m_Center: {x: 0, y: 0.22, z: 0}
 --- !u!96 &96096321071214686
 TrailRenderer:
   serializedVersion: 2

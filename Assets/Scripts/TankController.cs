@@ -18,16 +18,17 @@ public class TankController : MonoBehaviour
     public Transform GunEnd;
     public Transform Turret;
     public Transform Barrel;
+    public Collider Collider;
 
     public float ShellSpeed = 50f;
     public float TankSpeed = 100f;
     public float FireRate = 1.0f;
 
-    private Rigidbody tankRigid;
-    private string currentAnim;
-    private float lastFireTime;
-    private Vector3 initialBarrelPos;
-    private Coroutine barrelCoroutine;
+    protected Rigidbody tankRigid;
+    protected string currentAnim;
+    protected float lastFireTime;
+    protected Vector3 initialBarrelPos;
+    protected Coroutine barrelCoroutine;
 
     private void Reset()
     {
@@ -48,33 +49,41 @@ public class TankController : MonoBehaviour
         GunEnd = GetComponentsInChildren<Transform>().First(x => x.name == "GunEnd");
         Turret = GetComponentsInChildren<Transform>().First(x => x.name == "BoneTurretTurn");
         Barrel = GetComponentsInChildren<Transform>().First(x => x.name == "BoneBarrel");
+        Collider = GetComponent<Collider>();
     }
 
     private void Awake()
+    {
+        initialBarrelPos = Barrel.transform.localPosition;
+        SetMoveAnimation();
+    }
+
+    void SetMoveAnimation()
     {
         tankRigid = GetComponent<Rigidbody>();
         tankRigid.ObserveEveryValueChanged(x => x.velocity)
             .Subscribe(x =>
             {
-                if (x.x > 0.1f && currentAnim != "Forward")
+                var velocity = Vector3.Dot(transform.forward, x);
+                if (x.magnitude < 0.01f)
+                {
+                    currentAnim = "Idle";
+                    Animator.SetBool("Idle1", true);
+                    return;
+                }
+
+                if (velocity > 0 && currentAnim != "Forward")
                 {
                     currentAnim = "Forward";
                     Animator.SetBool("MoveForwStart", true);
                 }
-                else if (x.x < -0.1f && currentAnim != "Back")
+                else if (velocity < 0 && currentAnim != "Back")
                 {
                     currentAnim = "Back";
                     Animator.SetBool("MoveBackStart", true);
                 }
-                else if (x.magnitude <= 0.1f && currentAnim != "Idle")
-                {
-                    currentAnim = "Idle";
-                    Animator.SetBool("Idle1", true);
-                }
             })
             .AddTo(tankRigid);
-
-        initialBarrelPos = Barrel.transform.localPosition;
     }
 
     private void LateUpdate()
@@ -100,7 +109,9 @@ public class TankController : MonoBehaviour
         }
 
         Rigidbody shellInstance = Instantiate(ShellRigid, GunEnd.position, Turret.rotation) as Rigidbody;
+        shellInstance.GetComponent<Shell>().Initialize(this);
         shellInstance.velocity = ShellSpeed * -Turret.transform.up;
+
         FireSmoke.Play();
         SoundSource.PlayOneShot(FireSound);
 
@@ -111,6 +122,7 @@ public class TankController : MonoBehaviour
             StopCoroutine(barrelCoroutine);
             barrelCoroutine = null;
         }
+
         barrelCoroutine = StartCoroutine(BarrelPiston());
         IEnumerator BarrelPiston()
         {

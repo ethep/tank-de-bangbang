@@ -2,12 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyController : MonoBehaviour
+public class EnemyController : TankController
 {
-    public float moveSpeed = 5f;
-
     private void Update()
     {
-        transform.position += transform.forward * moveSpeed * Time.deltaTime;
+        Move(this.transform.forward);
     }
 }
