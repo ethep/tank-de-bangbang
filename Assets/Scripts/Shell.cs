@@ -7,12 +7,14 @@ public class Shell : MonoBehaviour
     public int shellDamage = 10;
     public ParticleSystem m_ExplosionParticles;
     public AudioSource m_ExplosionAudio;
+    public Rigidbody Rigidbody;
+
     private TankController parent;
 
-
-    public void Initialize(TankController parentTank)
+    public void Initialize(TankController parentTank, Vector3 velocity)
     {
         this.parent = parentTank;
+        this.Rigidbody.velocity = velocity;
     }
 
     void OnTriggerEnter(Collider col)

@@ -7,22 +7,29 @@ using UniRx;
 
 public class TankController : MonoBehaviour
 {
+    public const float ShellSpeedMin = 5f;
+    public const float ShellSpeedMax = 50f;
+    public const float TankSpeedMin = 100f;
+    public const float TankSpeedMax = 1000f;
+    public const float FireRateMin = 5.0f;
+    public const float FireRateMax = 0.2f;
+
     public Animator Animator;
 
     public AudioSource SoundSource;
     public AudioClip FireSound;
     public AudioClip IdleSound;
 
-    public Rigidbody ShellRigid;
+    public Shell ShellPrefab;
     public ParticleSystem FireSmoke;
     public Transform GunEnd;
     public Transform Turret;
     public Transform Barrel;
     public Collider Collider;
 
-    public float ShellSpeed = 50f;
-    public float TankSpeed = 100f;
-    public float FireRate = 1.0f;
+    public float ShellSpeed = ShellSpeedMin;
+    public float TankSpeed = TankSpeedMin;
+    public float FireRate = FireRateMin;
 
     protected Rigidbody tankRigid;
     protected string currentAnim;
@@ -42,9 +49,9 @@ public class TankController : MonoBehaviour
             .ConvertAll<AudioClip>(x => AssetDatabase.LoadAssetAtPath(
                 AssetDatabase.GUIDToAssetPath(x), typeof(AudioClip)) as AudioClip).First();
 
-        ShellRigid = AssetDatabase.FindAssets("t:prefab SCT_Shell").ToList()
-            .ConvertAll<Rigidbody>(x => AssetDatabase.LoadAssetAtPath(
-                AssetDatabase.GUIDToAssetPath(x), typeof(Rigidbody)) as Rigidbody).First();
+        ShellPrefab = AssetDatabase.FindAssets("t:prefab SCT_Shell").ToList()
+            .ConvertAll<Shell>(x => AssetDatabase.LoadAssetAtPath(
+                AssetDatabase.GUIDToAssetPath(x), typeof(Shell)) as Shell).First();
         FireSmoke = GetComponentsInChildren<ParticleSystem>().First(x => x.name == "smokeBarrel");
         GunEnd = GetComponentsInChildren<Transform>().First(x => x.name == "GunEnd");
         Turret = GetComponentsInChildren<Transform>().First(x => x.name == "BoneTurretTurn");
@@ -108,9 +115,8 @@ public class TankController : MonoBehaviour
             return;
         }
 
-        Rigidbody shellInstance = Instantiate(ShellRigid, GunEnd.position, Turret.rotation) as Rigidbody;
-        shellInstance.GetComponent<Shell>().Initialize(this);
-        shellInstance.velocity = ShellSpeed * -Turret.transform.up;
+        var shellInstance = Instantiate(ShellPrefab.gameObject, GunEnd.position, Turret.rotation) as GameObject;
+        shellInstance.GetComponent<Shell>().Initialize(this, ShellSpeed * -Turret.transform.up);
 
         FireSmoke.Play();
         SoundSource.PlayOneShot(FireSound);

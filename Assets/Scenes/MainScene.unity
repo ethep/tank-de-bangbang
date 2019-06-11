@@ -4523,11 +4523,6 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
-    - target: {fileID: 2284727182129244626, guid: 47f235d9b63c14dc6a01ef6a090676be,
-        type: 3}
-      propertyPath: Collider
-      value: 
-      objectReference: {fileID: 1772080375}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 47f235d9b63c14dc6a01ef6a090676be, type: 3}
 --- !u!4 &874954869 stripped
@@ -5017,7 +5012,7 @@ MonoBehaviour:
   - {fileID: 1676447553040546, guid: 36f560eb7be2e8842945384f0d3d72f2, type: 3}
   - {fileID: 1719847535777964, guid: 6e7043b0bf021f941aca99562e7def98, type: 3}
   - {fileID: 1734916008147184, guid: e1b6d59f236a654489d64a9d6477f69f, type: 3}
-  SpawnInterval: 8
+  SpawnInterval: 12
   RemainingTime: 0
 --- !u!1001 &989969970
 PrefabInstance:
@@ -8570,12 +8565,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1029e45609b022b42995be807cce94bf, type: 3}
---- !u!65 &1772080375 stripped
-BoxCollider:
-  m_CorrespondingSourceObject: {fileID: 65762718728076804, guid: 47f235d9b63c14dc6a01ef6a090676be,
-    type: 3}
-  m_PrefabInstance: {fileID: 874954868}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1772869224 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4787710956752224, guid: 1029e45609b022b42995be807cce94bf,
@@ -8634,7 +8623,7 @@ MonoBehaviour:
   - {fileID: 1676447553040546, guid: 36f560eb7be2e8842945384f0d3d72f2, type: 3}
   - {fileID: 1719847535777964, guid: 6e7043b0bf021f941aca99562e7def98, type: 3}
   - {fileID: 1734916008147184, guid: e1b6d59f236a654489d64a9d6477f69f, type: 3}
-  SpawnInterval: 5
+  SpawnInterval: 15
   RemainingTime: 0
 --- !u!4 &1776389595 stripped
 Transform:

@@ -38199,16 +38199,16 @@ MonoBehaviour:
   SoundSource: {fileID: 82016367722936904}
   FireSound: {fileID: 8300000, guid: 8b3a2843a25f7734d8dcf6b2a9cd4c5c, type: 3}
   IdleSound: {fileID: 8300000, guid: b6a7e39555a7f2e4dae0c4a98ace2458, type: 3}
-  ShellRigid: {fileID: 54623115701632660, guid: debf4a3c181809a4584794bd2d7a4ccf,
+  ShellPrefab: {fileID: 114280831994989886, guid: debf4a3c181809a4584794bd2d7a4ccf,
     type: 3}
   FireSmoke: {fileID: 198090216701044556}
   GunEnd: {fileID: 4453814034065844}
   Turret: {fileID: 4691289521268484}
   Barrel: {fileID: 4219096765181890}
   Collider: {fileID: 65294745995030166}
-  ShellSpeed: 50
+  ShellSpeed: 5
   TankSpeed: 100
-  FireRate: 1
+  FireRate: 5
 --- !u!65 &65294745995030166
 BoxCollider:
   m_ObjectHideFlags: 0

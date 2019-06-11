@@ -98,6 +98,7 @@ MonoBehaviour:
   shellDamage: 10
   m_ExplosionParticles: {fileID: 198420370492543742}
   m_ExplosionAudio: {fileID: 82500193431527450}
+  Rigidbody: {fileID: 54623115701632660}
 --- !u!65 &65767950994811626
 BoxCollider:
   m_ObjectHideFlags: 0
