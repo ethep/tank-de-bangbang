@@ -1,9 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using System.Collections;
 using System.Linq;
-using UnityEditor;
 using UniRx;
+using UnityEditor;
+using UnityEngine;
 
 public class TankController : MonoBehaviour
 {
@@ -19,9 +19,13 @@ public class TankController : MonoBehaviour
     public AudioSource SoundSource;
     public AudioClip FireSound;
     public AudioClip IdleSound;
+    public AudioClip TankDead;
 
     public Shell ShellPrefab;
     public ParticleSystem FireSmoke;
+    public ParticleSystem DeadSmoke;
+    public ParticleSystem Explosion;
+
     public Transform GunEnd;
     public Transform Turret;
     public Transform Barrel;
@@ -30,14 +34,26 @@ public class TankController : MonoBehaviour
     public float ShellSpeed = ShellSpeedMin;
     public float TankSpeed = TankSpeedMin;
     public float FireRate = FireRateMin;
+    public int HitPoint = 1;
 
     protected Rigidbody tankRigid;
+    [SerializeField]
     protected string currentAnim;
     protected float lastFireTime;
     protected Vector3 initialBarrelPos;
     protected Coroutine barrelCoroutine;
 
-    private void Reset()
+    #region UniRx
+    private Subject<Unit> OnDead = new Subject<Unit>();
+    public IObservable<Unit> ObserveOnDead()
+    {
+        return OnDead;
+    }
+    #endregion
+
+    public bool IsDead { get { return HitPoint <= 0; } }
+
+    protected void Reset()
     {
         Animator = GetComponentInChildren<Animator>();
 
@@ -48,11 +64,18 @@ public class TankController : MonoBehaviour
         IdleSound = AssetDatabase.FindAssets("t:audioclip tank_idle").ToList()
             .ConvertAll<AudioClip>(x => AssetDatabase.LoadAssetAtPath(
                 AssetDatabase.GUIDToAssetPath(x), typeof(AudioClip)) as AudioClip).First();
+        TankDead = AssetDatabase.FindAssets("t:audioclip tankDead").ToList()
+            .ConvertAll<AudioClip>(x => AssetDatabase.LoadAssetAtPath(
+                AssetDatabase.GUIDToAssetPath(x), typeof(AudioClip)) as AudioClip).First();
 
         ShellPrefab = AssetDatabase.FindAssets("t:prefab SCT_Shell").ToList()
             .ConvertAll<Shell>(x => AssetDatabase.LoadAssetAtPath(
                 AssetDatabase.GUIDToAssetPath(x), typeof(Shell)) as Shell).First();
+
         FireSmoke = GetComponentsInChildren<ParticleSystem>().First(x => x.name == "smokeBarrel");
+        DeadSmoke = GetComponentsInChildren<ParticleSystem>().First(x => x.name == "SmokeEffect");
+        Explosion = GetComponentsInChildren<ParticleSystem>().First(x => x.name == "TankExplosion");
+
         GunEnd = GetComponentsInChildren<Transform>().First(x => x.name == "GunEnd");
         Turret = GetComponentsInChildren<Transform>().First(x => x.name == "BoneTurretTurn");
         Barrel = GetComponentsInChildren<Transform>().First(x => x.name == "BoneBarrel");
@@ -69,8 +92,14 @@ public class TankController : MonoBehaviour
     {
         tankRigid = GetComponent<Rigidbody>();
         tankRigid.ObserveEveryValueChanged(x => x.velocity)
+            .Where(x => !IsDead)
             .Subscribe(x =>
             {
+                if (currentAnim == "Hit")
+                {
+                    return;
+                }
+
                 var velocity = Vector3.Dot(transform.forward, x);
                 if (x.magnitude < 0.01f)
                 {
@@ -104,12 +133,21 @@ public class TankController : MonoBehaviour
 
     public void Move(Vector3 vec)
     {
+        if (IsDead)
+        {
+            return;
+        }
+
         Vector3 movement = transform.forward * vec.normalized.x * TankSpeed * Time.deltaTime;
         tankRigid.velocity = tankRigid.transform.forward * movement.x;
     }
 
     public void Fire()
     {
+        if (IsDead)
+        {
+            return;
+        }
         if (lastFireTime + FireRate > Time.time)
         {
             return;
@@ -140,6 +178,60 @@ public class TankController : MonoBehaviour
                     initialBarrelPos.y + remain / 2,
                     Barrel.transform.localPosition.z);
                 yield return new WaitForEndOfFrame();
+            }
+        }
+    }
+
+    protected void Damage(int damage)
+    {
+        if (IsDead)
+        {
+            return;
+        }
+
+        HitPoint -= damage;
+        if (HitPoint <= 0)
+        {
+            OnDead.OnNext(Unit.Default);
+
+            Animator.SetBool("Dead" + (int)UnityEngine.Random.Range(1, 5), true);
+            currentAnim = "Dead";
+
+            SoundSource.loop = false;
+            SoundSource.pitch = 1;
+            SoundSource.clip = TankDead;
+            SoundSource.Play();
+            DeadSmoke.Play();
+            Explosion.Play();
+
+            Collider.enabled = false;
+            tankRigid.isKinematic = true;
+
+            StartCoroutine(DeadWipe());
+            IEnumerator DeadWipe()
+            {
+                yield return new WaitForSeconds(2f);
+                Destroy(this.gameObject);
+            }
+        }
+        else
+        {
+            Animator.SetBool("HitForw", true);
+            currentAnim = "Hit";
+            if (!DeadSmoke.isPlaying)
+            {
+                DeadSmoke.Play();
+            }
+            StartCoroutine(HitEnd());
+            IEnumerator HitEnd()
+            {
+                yield return new WaitForSeconds(1);
+                if (!IsDead)
+                {
+                    // 一旦Idleに戻す
+                    Animator.SetBool("Idle", true);
+                    currentAnim = "Idle";
+                }
             }
         }
     }

@@ -61947,9 +61947,12 @@ MonoBehaviour:
   SoundSource: {fileID: 82149401811530010}
   FireSound: {fileID: 8300000, guid: 8b3a2843a25f7734d8dcf6b2a9cd4c5c, type: 3}
   IdleSound: {fileID: 8300000, guid: b6a7e39555a7f2e4dae0c4a98ace2458, type: 3}
+  TankDead: {fileID: 8300000, guid: 00016a6eb7952c04aab122fbfca27c6b, type: 3}
   ShellPrefab: {fileID: 114280831994989886, guid: debf4a3c181809a4584794bd2d7a4ccf,
     type: 3}
   FireSmoke: {fileID: 198771475370202344}
+  DeadSmoke: {fileID: 198353904675496974}
+  Explosion: {fileID: 198663811058165938}
   GunEnd: {fileID: 4608565630042816}
   Turret: {fileID: 4249008697539248}
   Barrel: {fileID: 4807341770043920}
@@ -61957,6 +61960,8 @@ MonoBehaviour:
   ShellSpeed: 5
   TankSpeed: 100
   FireRate: 5
+  HitPoint: 1
+  currentAnim: 
 --- !u!65 &65440069937668696
 BoxCollider:
   m_ObjectHideFlags: 0

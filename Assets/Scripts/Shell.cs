@@ -1,25 +1,27 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-//this script is for the  shell
+﻿using UnityEngine;
+
 public class Shell : MonoBehaviour
 {
-    public int shellDamage = 10;
+    public int Damage = 1;
     public ParticleSystem m_ExplosionParticles;
     public AudioSource m_ExplosionAudio;
     public Rigidbody Rigidbody;
 
-    private TankController parent;
+    public TankController Parent;
 
     public void Initialize(TankController parentTank, Vector3 velocity)
     {
-        this.parent = parentTank;
+        this.Parent = parentTank;
         this.Rigidbody.velocity = velocity;
     }
 
     void OnTriggerEnter(Collider col)
     {
-        if (col == parent.Collider)
+        if (col == Parent.Collider)
+        {
+            return;
+        }
+        if (Parent.CompareTag(col.tag))
         {
             return;
         }
@@ -28,7 +30,7 @@ public class Shell : MonoBehaviour
         m_ExplosionParticles.Play();
         // Play the explosion sound effect.
         m_ExplosionAudio.Play();
-        GetComponent<Rigidbody>().velocity = Vector3.zero;
+        Rigidbody.velocity = Vector3.zero;
         GetComponent<Collider>().enabled = false;
         GetComponent<Renderer>().enabled = false;
         Destroy(gameObject, 2);

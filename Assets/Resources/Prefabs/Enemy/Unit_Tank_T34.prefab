@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 82306494313752940}
   m_Layer: 0
   m_Name: Unit_Tank_T34
-  m_TagString: Player
+  m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -132,9 +132,12 @@ MonoBehaviour:
   SoundSource: {fileID: 82306494313752940}
   FireSound: {fileID: 8300000, guid: 8b3a2843a25f7734d8dcf6b2a9cd4c5c, type: 3}
   IdleSound: {fileID: 8300000, guid: b6a7e39555a7f2e4dae0c4a98ace2458, type: 3}
+  TankDead: {fileID: 8300000, guid: 00016a6eb7952c04aab122fbfca27c6b, type: 3}
   ShellPrefab: {fileID: 114280831994989886, guid: debf4a3c181809a4584794bd2d7a4ccf,
     type: 3}
   FireSmoke: {fileID: 198091016740665302}
+  DeadSmoke: {fileID: 198819976028372750}
+  Explosion: {fileID: 198320242186224402}
   GunEnd: {fileID: 4894741065189252}
   Turret: {fileID: 4358624050430668}
   Barrel: {fileID: 4098630199684048}
@@ -142,6 +145,8 @@ MonoBehaviour:
   ShellSpeed: 5
   TankSpeed: 100
   FireRate: 5
+  HitPoint: 1
+  currentAnim: 
 --- !u!65 &65646081000164870
 BoxCollider:
   m_ObjectHideFlags: 0
