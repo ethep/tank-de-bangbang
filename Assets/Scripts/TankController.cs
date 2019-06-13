@@ -1,35 +1,59 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using System;
+using System.Collections;
 using System.Linq;
-using UnityEditor;
 using UniRx;
+using UnityEditor;
+using UnityEngine;
 
 public class TankController : MonoBehaviour
 {
+    public const float ShellSpeedMin = 5f;
+    public const float ShellSpeedMax = 50f;
+    public const float TankSpeedMin = 100f;
+    public const float TankSpeedMax = 1000f;
+    public const float FireRateMin = 5.0f;
+    public const float FireRateMax = 0.2f;
+
     public Animator Animator;
 
     public AudioSource SoundSource;
     public AudioClip FireSound;
     public AudioClip IdleSound;
+    public AudioClip TankDead;
 
-    public Rigidbody ShellRigid;
+    public Shell ShellPrefab;
     public ParticleSystem FireSmoke;
+    public ParticleSystem DeadSmoke;
+    public ParticleSystem Explosion;
+
     public Transform GunEnd;
     public Transform Turret;
     public Transform Barrel;
+    public Collider Collider;
 
-    public float ShellSpeed = 50f;
-    public float TankSpeed = 100f;
-    public float FireRate = 1.0f;
+    public float ShellSpeed = ShellSpeedMin;
+    public float TankSpeed = TankSpeedMin;
+    public float FireRate = FireRateMin;
+    public int HitPoint = 1;
 
-    private Rigidbody tankRigid;
-    private string currentAnim;
-    private float lastFireTime;
-    private Vector3 initialBarrelPos;
-    private Coroutine barrelCoroutine;
+    protected Rigidbody tankRigid;
+    [SerializeField]
+    protected string currentAnim;
+    protected float lastFireTime;
+    protected Vector3 initialBarrelPos;
+    protected Coroutine barrelCoroutine;
 
-    private void Reset()
+    #region UniRx
+    private Subject<Unit> OnDead = new Subject<Unit>();
+    public IObservable<Unit> ObserveOnDead()
+    {
+        return OnDead;
+    }
+    #endregion
+
+    public bool IsDead { get { return HitPoint <= 0; } }
+
+    protected void Reset()
     {
         Animator = GetComponentInChildren<Animator>();
 
@@ -40,41 +64,62 @@ public class TankController : MonoBehaviour
         IdleSound = AssetDatabase.FindAssets("t:audioclip tank_idle").ToList()
             .ConvertAll<AudioClip>(x => AssetDatabase.LoadAssetAtPath(
                 AssetDatabase.GUIDToAssetPath(x), typeof(AudioClip)) as AudioClip).First();
+        TankDead = AssetDatabase.FindAssets("t:audioclip tankDead").ToList()
+            .ConvertAll<AudioClip>(x => AssetDatabase.LoadAssetAtPath(
+                AssetDatabase.GUIDToAssetPath(x), typeof(AudioClip)) as AudioClip).First();
 
-        ShellRigid = AssetDatabase.FindAssets("t:prefab SCT_Shell").ToList()
-            .ConvertAll<Rigidbody>(x => AssetDatabase.LoadAssetAtPath(
-                AssetDatabase.GUIDToAssetPath(x), typeof(Rigidbody)) as Rigidbody).First();
+        ShellPrefab = AssetDatabase.FindAssets("t:prefab SCT_Shell").ToList()
+            .ConvertAll<Shell>(x => AssetDatabase.LoadAssetAtPath(
+                AssetDatabase.GUIDToAssetPath(x), typeof(Shell)) as Shell).First();
+
         FireSmoke = GetComponentsInChildren<ParticleSystem>().First(x => x.name == "smokeBarrel");
+        DeadSmoke = GetComponentsInChildren<ParticleSystem>().First(x => x.name == "SmokeEffect");
+        Explosion = GetComponentsInChildren<ParticleSystem>().First(x => x.name == "TankExplosion");
+
         GunEnd = GetComponentsInChildren<Transform>().First(x => x.name == "GunEnd");
         Turret = GetComponentsInChildren<Transform>().First(x => x.name == "BoneTurretTurn");
         Barrel = GetComponentsInChildren<Transform>().First(x => x.name == "BoneBarrel");
+        Collider = GetComponent<Collider>();
     }
 
     private void Awake()
     {
+        initialBarrelPos = Barrel.transform.localPosition;
+        SetMoveAnimation();
+    }
+
+    void SetMoveAnimation()
+    {
         tankRigid = GetComponent<Rigidbody>();
         tankRigid.ObserveEveryValueChanged(x => x.velocity)
+            .Where(x => !IsDead)
             .Subscribe(x =>
             {
-                if (x.x > 0.1f && currentAnim != "Forward")
+                if (currentAnim == "Hit")
+                {
+                    return;
+                }
+
+                var velocity = Vector3.Dot(transform.forward, x);
+                if (x.magnitude < 0.01f)
+                {
+                    currentAnim = "Idle";
+                    Animator.SetBool("Idle1", true);
+                    return;
+                }
+
+                if (velocity > 0 && currentAnim != "Forward")
                 {
                     currentAnim = "Forward";
                     Animator.SetBool("MoveForwStart", true);
                 }
-                else if (x.x < -0.1f && currentAnim != "Back")
+                else if (velocity < 0 && currentAnim != "Back")
                 {
                     currentAnim = "Back";
                     Animator.SetBool("MoveBackStart", true);
                 }
-                else if (x.magnitude <= 0.1f && currentAnim != "Idle")
-                {
-                    currentAnim = "Idle";
-                    Animator.SetBool("Idle1", true);
-                }
             })
             .AddTo(tankRigid);
-
-        initialBarrelPos = Barrel.transform.localPosition;
     }
 
     private void LateUpdate()
@@ -88,19 +133,29 @@ public class TankController : MonoBehaviour
 
     public void Move(Vector3 vec)
     {
+        if (IsDead)
+        {
+            return;
+        }
+
         Vector3 movement = transform.forward * vec.normalized.x * TankSpeed * Time.deltaTime;
         tankRigid.velocity = tankRigid.transform.forward * movement.x;
     }
 
     public void Fire()
     {
+        if (IsDead)
+        {
+            return;
+        }
         if (lastFireTime + FireRate > Time.time)
         {
             return;
         }
 
-        Rigidbody shellInstance = Instantiate(ShellRigid, GunEnd.position, Turret.rotation) as Rigidbody;
-        shellInstance.velocity = ShellSpeed * -Turret.transform.up;
+        var shellInstance = Instantiate(ShellPrefab.gameObject, GunEnd.position, Turret.rotation) as GameObject;
+        shellInstance.GetComponent<Shell>().Initialize(this, ShellSpeed * -Turret.transform.up);
+
         FireSmoke.Play();
         SoundSource.PlayOneShot(FireSound);
 
@@ -111,6 +166,7 @@ public class TankController : MonoBehaviour
             StopCoroutine(barrelCoroutine);
             barrelCoroutine = null;
         }
+
         barrelCoroutine = StartCoroutine(BarrelPiston());
         IEnumerator BarrelPiston()
         {
@@ -122,6 +178,60 @@ public class TankController : MonoBehaviour
                     initialBarrelPos.y + remain / 2,
                     Barrel.transform.localPosition.z);
                 yield return new WaitForEndOfFrame();
+            }
+        }
+    }
+
+    protected void Damage(int damage)
+    {
+        if (IsDead)
+        {
+            return;
+        }
+
+        HitPoint -= damage;
+        if (HitPoint <= 0)
+        {
+            OnDead.OnNext(Unit.Default);
+
+            Animator.SetBool("Dead" + (int)UnityEngine.Random.Range(1, 5), true);
+            currentAnim = "Dead";
+
+            SoundSource.loop = false;
+            SoundSource.pitch = 1;
+            SoundSource.clip = TankDead;
+            SoundSource.Play();
+            DeadSmoke.Play();
+            Explosion.Play();
+
+            Collider.enabled = false;
+            tankRigid.isKinematic = true;
+
+            StartCoroutine(DeadWipe());
+            IEnumerator DeadWipe()
+            {
+                yield return new WaitForSeconds(2f);
+                Destroy(this.gameObject);
+            }
+        }
+        else
+        {
+            Animator.SetBool("HitForw", true);
+            currentAnim = "Hit";
+            if (!DeadSmoke.isPlaying)
+            {
+                DeadSmoke.Play();
+            }
+            StartCoroutine(HitEnd());
+            IEnumerator HitEnd()
+            {
+                yield return new WaitForSeconds(1);
+                if (!IsDead)
+                {
+                    // 一旦Idleに戻す
+                    Animator.SetBool("Idle", true);
+                    currentAnim = "Idle";
+                }
             }
         }
     }

@@ -2,12 +2,31 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EnemyController : MonoBehaviour
+public class EnemyController : TankController
 {
-    public float moveSpeed = 10f;
+    protected new void Reset()
+    {
+        base.Reset();
+    }
 
     private void Update()
     {
-        transform.position += transform.forward * moveSpeed * Time.deltaTime;
+        Move(this.transform.forward);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Shell"))
+        {
+            return;
+        }
+
+        var shell = other.GetComponent<Shell>();
+        if (shell.Parent.CompareTag(this.tag))
+        {
+            return;
+        }
+
+        Damage(shell.Damage);
     }
 }
