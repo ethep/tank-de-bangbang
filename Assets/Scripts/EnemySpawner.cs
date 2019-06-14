@@ -1,8 +1,7 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unity.Collections;
-using UnityEngine;
+﻿using System.Collections.Generic;
 using System.Linq;
+using UniRx;
+using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
@@ -41,5 +40,9 @@ public class EnemySpawner : MonoBehaviour
         var newEnemy = Instantiate(prefab, this.transform).GetComponent<EnemyController>();
         newEnemy.transform.position = this.transform.position;
         newEnemy.transform.localRotation = Quaternion.identity;
+
+        newEnemy.ObserveOnDead()
+            .Subscribe(_ => GameManager.Instance.EnemyDead(newEnemy))
+            .AddTo(newEnemy);
     }
 }

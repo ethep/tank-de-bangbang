@@ -122,15 +122,6 @@ public class TankController : MonoBehaviour
             .AddTo(tankRigid);
     }
 
-    private void LateUpdate()
-    {
-        // Idleのアニメーションで動いてしまうので、強制的に戻す
-        Turret.transform.rotation = Quaternion.Euler(
-            transform.eulerAngles.x - 90,
-            transform.eulerAngles.y,
-            transform.eulerAngles.z - 90);
-    }
-
     public void Move(Vector3 vec)
     {
         if (IsDead)
@@ -180,6 +171,22 @@ public class TankController : MonoBehaviour
                 yield return new WaitForEndOfFrame();
             }
         }
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (!other.CompareTag("Shell"))
+        {
+            return;
+        }
+
+        var shell = other.GetComponent<Shell>();
+        if (shell.Parent.CompareTag(this.tag))
+        {
+            return;
+        }
+
+        Damage(shell.Damage);
     }
 
     protected void Damage(int damage)

@@ -1,12 +1,16 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UniRx;
+using System;
 
 public class EnemyController : TankController
 {
-    protected new void Reset()
+    private void Start()
     {
-        base.Reset();
+        Observable.Interval(TimeSpan.FromSeconds(FireRate))
+            .Subscribe(_ => Fire())
+            .AddTo(this);
     }
 
     private void Update()
@@ -14,19 +18,13 @@ public class EnemyController : TankController
         Move(this.transform.forward);
     }
 
-    private void OnTriggerEnter(Collider other)
+    private void LateUpdate()
     {
-        if (!other.CompareTag("Shell"))
-        {
-            return;
-        }
-
-        var shell = other.GetComponent<Shell>();
-        if (shell.Parent.CompareTag(this.tag))
-        {
-            return;
-        }
-
-        Damage(shell.Damage);
+        // Idleのアニメーションで動いてしまうので、強制的に戻す
+        var rot = 180 - transform.rotation.eulerAngles.y;
+        Turret.transform.rotation = Quaternion.Euler(
+            transform.eulerAngles.x - 90, // 元のモデルが回転してしまってる
+            transform.eulerAngles.y + rot,
+            transform.eulerAngles.z);
     }
 }
