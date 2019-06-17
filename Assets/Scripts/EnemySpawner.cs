@@ -1,13 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UniRx;
 using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
+    public bool IsAutoSpawn = false;
+    public float FirstInterval = 5;
+    public float IntervalMagnification = 1.0f;
     public List<GameObject> enemyPrefabList = new List<GameObject>();
-    public float SpawnInterval = 10.0f;
-    public float RemainingTime;
+
+    private float remainingTime = 0f;
 
     private void Reset()
     {
@@ -18,31 +22,51 @@ public class EnemySpawner : MonoBehaviour
                 .ConvertAll(x => x.gameObject));
     }
 
-    private void Start()
+    public void Initialize()
     {
-        RemainingTime = Random.Range(SpawnInterval * 0.5f, SpawnInterval);
+        remainingTime = FirstInterval;
     }
 
     private void Update()
     {
-        if ((RemainingTime -= Time.deltaTime) > 0)
+        if (!IsAutoSpawn)
         {
             return;
         }
 
-        Spawn();
-        RemainingTime = Random.Range(SpawnInterval * 0.5f, SpawnInterval * 1.5f);
+        if ((remainingTime -= Time.deltaTime) > 0)
+        {
+            return;
+        }
+
+        var spawnType = LevelDesign.Enemy.LotteryStrongSpawn() ? EnemyController.EnemyType.Strong : EnemyController.EnemyType.Normal;
+        Spawn(spawnType);
+
+        var interval = IntervalMagnification * LevelDesign.Enemy.SpawnInterval();
+        remainingTime = UnityEngine.Random.Range(interval * 0.7f, interval * 1.3f);
     }
 
-    public void Spawn()
+    public void Spawn(EnemyController.EnemyType enemyType)
     {
-        var prefab = enemyPrefabList[Random.Range(0, enemyPrefabList.Count)];
+        var prefab = enemyPrefabList[UnityEngine.Random.Range(0, enemyPrefabList.Count)];
         var newEnemy = Instantiate(prefab, this.transform).GetComponent<EnemyController>();
         newEnemy.transform.position = this.transform.position;
         newEnemy.transform.localRotation = Quaternion.identity;
 
+        newEnemy.FireRate = LevelDesign.Enemy.FireRate();
+        newEnemy.ShellSpeed = LevelDesign.Enemy.ShellSpeed();
+        newEnemy.TankSpeed = LevelDesign.Enemy.TankSpeed();
+
+        if (enemyType == EnemyController.EnemyType.Strong)
+        {
+            newEnemy.transform.localScale *= 1.5f;
+            newEnemy.HitPoint = 2;
+        }
+
         newEnemy.ObserveOnDead()
-            .Subscribe(_ => GameManager.Instance.EnemyDead(newEnemy))
+            .Subscribe(_ => GameManager.Instance.OnEnemyDead(newEnemy))
             .AddTo(newEnemy);
+
+        GameManager.Instance.OnEnemySpawn(newEnemy);
     }
 }

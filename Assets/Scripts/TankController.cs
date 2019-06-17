@@ -7,13 +7,6 @@ using UnityEngine;
 
 public class TankController : MonoBehaviour
 {
-    public const float ShellSpeedMin = 5f;
-    public const float ShellSpeedMax = 50f;
-    public const float TankSpeedMin = 100f;
-    public const float TankSpeedMax = 1000f;
-    public const float FireRateMin = 5.0f;
-    public const float FireRateMax = 0.2f;
-
     public Animator Animator;
 
     public AudioSource SoundSource;
@@ -31,9 +24,9 @@ public class TankController : MonoBehaviour
     public Transform Barrel;
     public Collider Collider;
 
-    public float ShellSpeed = ShellSpeedMin;
-    public float TankSpeed = TankSpeedMin;
-    public float FireRate = FireRateMin;
+    public float ShellSpeed = LevelDesign.Player.ShellSpeedMin;
+    public float TankSpeed = LevelDesign.Player.TankSpeedMin;
+    public float FireRate = LevelDesign.Player.FireRateMin;
     public int HitPoint = 1;
 
     protected Rigidbody tankRigid;
@@ -181,7 +174,7 @@ public class TankController : MonoBehaviour
         }
 
         var shell = other.GetComponent<Shell>();
-        if (shell.Parent.CompareTag(this.tag))
+        if (CompareTag(shell.ParentTag))
         {
             return;
         }

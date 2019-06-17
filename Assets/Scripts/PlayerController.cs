@@ -4,6 +4,18 @@ using UnityEngine;
 
 public class PlayerController : TankController
 {
+    private void Start()
+    {
+        SetParam();
+    }
+
+    public void SetParam()
+    {
+        FireRate = LevelDesign.Player.FireRate();
+        TankSpeed = LevelDesign.Player.TankSpeed();
+        ShellSpeed = LevelDesign.Player.ShellSpeed();
+    }
+
     private void LateUpdate()
     {
         // Idleのアニメーションで動いてしまうので、強制的に戻す

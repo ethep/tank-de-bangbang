@@ -6,6 +6,15 @@ using System;
 
 public class EnemyController : TankController
 {
+    public enum EnemyType
+    {
+        Normal,
+        Strong,
+        Bonus,
+    };
+
+    public EnemyType Type = EnemyType.Normal;
+
     private void Start()
     {
         Observable.Interval(TimeSpan.FromSeconds(FireRate))
