@@ -7,21 +7,17 @@ public class Shell : MonoBehaviour
     public AudioSource m_ExplosionAudio;
     public Rigidbody Rigidbody;
 
-    public TankController Parent;
+    public string ParentTag;
 
     public void Initialize(TankController parentTank, Vector3 velocity)
     {
-        this.Parent = parentTank;
+        this.ParentTag = parentTank.tag;
         this.Rigidbody.velocity = velocity;
     }
 
     void OnTriggerEnter(Collider col)
     {
-        if (col == Parent.Collider)
-        {
-            return;
-        }
-        if (Parent.CompareTag(col.tag))
+        if (col.CompareTag(ParentTag))
         {
             return;
         }
