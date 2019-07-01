@@ -21,6 +21,10 @@ public class Shell : MonoBehaviour
         {
             return;
         }
+        if (col.CompareTag("Wiper"))
+        {
+            return;
+        }
 
         // Play the particle system.
         m_ExplosionParticles.Play();
