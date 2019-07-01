@@ -137,7 +137,7 @@ public class TankController : MonoBehaviour
             return;
         }
 
-        var shellInstance = Instantiate(ShellPrefab.gameObject, GunEnd.position, Turret.rotation) as GameObject;
+        var shellInstance = Instantiate(ShellPrefab.gameObject, GunEnd.position, Turret.rotation * Quaternion.Euler(180f, 0f, 0f)) as GameObject;
         shellInstance.GetComponent<Shell>().Initialize(this, ShellSpeed * -Turret.transform.up);
 
         FireSmoke.Play();
