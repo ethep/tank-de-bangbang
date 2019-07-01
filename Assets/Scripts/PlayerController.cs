@@ -4,9 +4,16 @@ using UnityEngine;
 
 public class PlayerController : TankController
 {
+    public LoadingTimeGauge LoadingGauge;
+
     private void Start()
     {
         SetParam();
+    }
+
+    private void Update()
+    {
+        LoadingGauge.Value.Value = (Time.time - lastFireTime) / FireRate;
     }
 
     public void SetParam()
