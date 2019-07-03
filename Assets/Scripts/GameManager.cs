@@ -13,6 +13,7 @@ public class GameManager : MonoBehaviour
     public ColliderEventObserver[] Wiper;
     public EnemySpawner[] EnemySpawners;
     public EnemySpawner BonusSpawner { get { return EnemySpawners[3]; } }
+    public Transform CloudTransform;
 
     // UI
     public GameObject StartButton;
@@ -37,6 +38,7 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
+        CloudTransform.Rotate(Vector3.up, 0.2f);
         if (!InGame)
         {
             return;

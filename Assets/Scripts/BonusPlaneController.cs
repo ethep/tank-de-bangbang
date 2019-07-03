@@ -41,7 +41,6 @@ public class BonusPlaneController : VehicleController
         SoundSource.Play();
 
         Collider.enabled = false;
-        Rigidbody.isKinematic = true;
 
         StartCoroutine(DeadWipe());
         IEnumerator DeadWipe()
