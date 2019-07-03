@@ -4,6 +4,7 @@ using UnityEngine;
 using UniRx;
 using System.Linq;
 using UnityEngine.UI;
+using Cinemachine;
 
 public class GameManager : MonoBehaviour
 {
@@ -11,11 +12,12 @@ public class GameManager : MonoBehaviour
     public const string HighScoreKey = "high_score";
 
     // Game Object
-    public PlayerController PlayerTank;
+    public Transform PlayerTankPos;
     public ColliderEventObserver[] Wiper;
     public EnemySpawner[] EnemySpawners;
     public EnemySpawner BonusSpawner { get { return EnemySpawners[3]; } }
     public Transform CloudTransform;
+    public CinemachineVirtualCamera VirtualCamera;
 
     // UI
     public GameObject StartButton;
@@ -23,12 +25,17 @@ public class GameManager : MonoBehaviour
     public Text HighScoreText;
     public Text CurrentLevelText;
     public Image LevelRemainingTimeGauge;
+    public LoadingTimeGauge LoadingGauge;
+    public GameObject TankSelectUI;
+    public PlayerController[] SelectTanks;
+    public GameObject TankSelectButton;
 
     // Game Parameter
     public ReactiveProperty<int> GameLevel = new ReactiveProperty<int>(0);
     public float RemainingGameTime = 0;
     public bool InGame { get { return RemainingGameTime > 0; } }
 
+    public PlayerController playerTank;
     private int remainingDefeatBonus = LevelDesign.Enemy.BonusRequiredDefeat;
     private List<VehicleController> spawnedEnemy = new List<VehicleController>();
     private ReactiveProperty<int> currentScore = new ReactiveProperty<int>(0);
@@ -39,11 +46,10 @@ public class GameManager : MonoBehaviour
         Instance = this;
 
         Wiper.ToList().ForEach(x => x.ObserveOnTriggerEnter().Subscribe(OnObjectEnterWiper).AddTo(this));
-        PlayerTank.ObserveOnDead().Subscribe(_ => OnPlayerDead());
         EnemySpawners.ToList().ForEach(x => x.IsAutoSpawn = false);
-        currentScore.Subscribe(x => CurrentScoreText.text = string.Format("Score:{0}", x));
-        highScore.Subscribe(x => HighScoreText.text = string.Format("High  :{0}", x));
-        GameLevel.Subscribe(x => CurrentLevelText.text = string.Format("{0} / {1}", x, LevelDesign.LevelMax));
+        currentScore.Subscribe(x => CurrentScoreText.text = string.Format("Score:{0}", x)).AddTo(this);
+        highScore.Subscribe(x => HighScoreText.text = string.Format("High  :{0}", x)).AddTo(this);
+        GameLevel.Subscribe(x => CurrentLevelText.text = string.Format("{0} / {1}", x, LevelDesign.LevelMax)).AddTo(this);
 
         highScore.Value = PlayerPrefs.GetInt(HighScoreKey);
     }
@@ -65,10 +71,14 @@ public class GameManager : MonoBehaviour
 
     public void OnGameStartButton()
     {
-        TouchManager.Instance.ObserveOnTap().Subscribe(_ => PlayerTank.Fire()).AddTo(this);
-        TouchManager.Instance.ObserveOnDrag().Subscribe(PlayerTank.Move).AddTo(this);
-        PlayerTank.Departure();
+        TouchManager.Instance.ObserveOnTap().Subscribe(_ => playerTank.Fire()).AddTo(playerTank);
+        TouchManager.Instance.ObserveOnDrag().Subscribe(playerTank.Move).AddTo(playerTank);
+        playerTank.ObserveOnDead().Subscribe(_ => OnPlayerDead()).AddTo(playerTank);
+        playerTank.Departure();
+
         StartButton.SetActive(false);
+        TankSelectButton.SetActive(false);
+
         StartCoroutine(StageStart());
     }
 
@@ -151,5 +161,30 @@ public class GameManager : MonoBehaviour
             spawnedEnemy.Remove(other.GetComponent<EnemyController>());
         }
         Destroy(other.gameObject);
+    }
+
+    public void OnChangeTankButton()
+    {
+        TankSelectUI.SetActive(true);
+    }
+
+    public void OnTapTankSelect(int index)
+    {
+        if (playerTank != null)
+        {
+            Destroy(playerTank.gameObject);
+        }
+        playerTank = Instantiate(SelectTanks[index], PlayerTankPos);
+        playerTank.LoadingGauge = LoadingGauge;
+        LoadingGauge.SetTarget(playerTank.transform);
+        playerTank.enabled = true;
+
+        playerTank.transform.localPosition = Vector3.zero;
+        playerTank.transform.localRotation = Quaternion.identity;
+
+        VirtualCamera.Follow = playerTank.transform;
+        VirtualCamera.LookAt = playerTank.transform;
+
+        TankSelectUI.SetActive(false);
     }
 }

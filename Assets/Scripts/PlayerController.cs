@@ -16,12 +16,15 @@ public class PlayerController : TankController
     private void Start()
     {
         SetParam();
-        LoadingGauge.gameObject.SetActive(false);
+        LoadingGauge?.gameObject.SetActive(false);
     }
 
     private void Update()
     {
-        LoadingGauge.Value.Value = (Time.time - lastFireTime) / FireRate;
+        if (LoadingGauge != null)
+        {
+            LoadingGauge.Value.Value = (Time.time - lastFireTime) / FireRate;
+        }
     }
 
     public override void Move(Vector3 vec)
@@ -38,6 +41,7 @@ public class PlayerController : TankController
 
     public void Departure()
     {
+        tankRigid.isKinematic = false;
         lastFireTime = Time.time - FireRate;
         LoadingGauge.gameObject.SetActive(true);
     }
