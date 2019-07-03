@@ -16,11 +16,11 @@ public static class LevelDesign
 
     public static class Player
     {
-        public const float ShellSpeedMin = 5f;
+        public const float ShellSpeedMin = 10f;
         public const float ShellSpeedMax = 50f;
-        public const float TankSpeedMin = 100f;
+        public const float TankSpeedMin = 200f;
         public const float TankSpeedMax = 500f;
-        public const float FireRateMin = 5.0f;
+        public const float FireRateMin = 4.0f;
         public const float FireRateMax = 0.2f;
 
         public static int ShellSpeedLevel
@@ -75,8 +75,10 @@ public static class LevelDesign
         // 強力な個体が出現するようになるレベル
         public const int StrongSpawnLevel = 5;
         public const int StrongSpawnRate = 30;
-        // ボーナスUFOが出現する撃破数
-        public const int BonusRequiredDefeat = 10;
+        // ボーナスが出現する撃破数
+        public const int BonusRequiredDefeat = 1;
+        // ボーナスは固定速度
+        public const float BonusSpeed = 100f;
 
         public static float Rate { get { return (float)GameManager.Instance.GameLevel / (float)LevelMax; } }
 

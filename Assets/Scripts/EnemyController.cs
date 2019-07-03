@@ -6,17 +6,12 @@ using System;
 
 public class EnemyController : TankController
 {
-    public enum EnemyType
-    {
-        Normal,
-        Strong,
-        Bonus,
-    };
-
-    public EnemyType Type = EnemyType.Normal;
-
     private void Start()
     {
+        MoveSpeed = LevelDesign.Enemy.TankSpeed();
+        FireRate = LevelDesign.Enemy.FireRate();
+        ShellSpeed = LevelDesign.Enemy.ShellSpeed();
+
         Observable.Interval(TimeSpan.FromSeconds(FireRate))
             .Subscribe(_ => Fire())
             .AddTo(this);

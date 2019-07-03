@@ -5,11 +5,8 @@ using UniRx;
 using UnityEditor;
 using UnityEngine;
 
-public class TankController : MonoBehaviour
+public class TankController : VehicleController
 {
-    public Animator Animator;
-
-    public AudioSource SoundSource;
     public AudioClip FireSound;
     public AudioClip IdleSound;
     public AudioClip TankDead;
@@ -22,12 +19,9 @@ public class TankController : MonoBehaviour
     public Transform GunEnd;
     public Transform Turret;
     public Transform Barrel;
-    public Collider Collider;
 
     public float ShellSpeed = LevelDesign.Player.ShellSpeedMin;
-    public float TankSpeed = LevelDesign.Player.TankSpeedMin;
     public float FireRate = LevelDesign.Player.FireRateMin;
-    public int HitPoint = 1;
 
     protected Rigidbody tankRigid;
     [SerializeField]
@@ -36,21 +30,9 @@ public class TankController : MonoBehaviour
     protected Vector3 initialBarrelPos;
     protected Coroutine barrelCoroutine;
 
-    #region UniRx
-    private Subject<Unit> OnDead = new Subject<Unit>();
-    public IObservable<Unit> ObserveOnDead()
+    protected new void Reset()
     {
-        return OnDead;
-    }
-    #endregion
-
-    public bool IsDead { get { return HitPoint <= 0; } }
-
-    protected void Reset()
-    {
-        Animator = GetComponentInChildren<Animator>();
-
-        SoundSource = GetComponent<AudioSource>();
+        base.Reset();
         FireSound = AssetDatabase.FindAssets("t:audioclip tankShot").ToList()
             .ConvertAll<AudioClip>(x => AssetDatabase.LoadAssetAtPath(
                 AssetDatabase.GUIDToAssetPath(x), typeof(AudioClip)) as AudioClip).First();
@@ -72,7 +54,6 @@ public class TankController : MonoBehaviour
         GunEnd = GetComponentsInChildren<Transform>().First(x => x.name == "GunEnd");
         Turret = GetComponentsInChildren<Transform>().First(x => x.name == "BoneTurretTurn");
         Barrel = GetComponentsInChildren<Transform>().First(x => x.name == "BoneBarrel");
-        Collider = GetComponent<Collider>();
     }
 
     private void Awake()
@@ -115,17 +96,6 @@ public class TankController : MonoBehaviour
             .AddTo(tankRigid);
     }
 
-    public void Move(Vector3 vec)
-    {
-        if (IsDead)
-        {
-            return;
-        }
-
-        Vector3 movement = transform.forward * vec.normalized.x * TankSpeed * Time.deltaTime;
-        tankRigid.velocity = tankRigid.transform.forward * movement.x;
-    }
-
     public void Fire()
     {
         if (IsDead)
@@ -166,23 +136,7 @@ public class TankController : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter(Collider other)
-    {
-        if (!other.CompareTag("Shell"))
-        {
-            return;
-        }
-
-        var shell = other.GetComponent<Shell>();
-        if (CompareTag(shell.ParentTag))
-        {
-            return;
-        }
-
-        Damage(shell.Damage);
-    }
-
-    protected void Damage(int damage)
+    protected override void Damage(int damage)
     {
         if (IsDead)
         {

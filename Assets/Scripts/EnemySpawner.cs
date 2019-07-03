@@ -39,25 +39,22 @@ public class EnemySpawner : MonoBehaviour
             return;
         }
 
-        var spawnType = LevelDesign.Enemy.LotteryStrongSpawn() ? EnemyController.EnemyType.Strong : EnemyController.EnemyType.Normal;
+        var spawnType = LevelDesign.Enemy.LotteryStrongSpawn() ? VehicleController.VehicleType.Strong : VehicleController.VehicleType.Enemy;
         Spawn(spawnType);
 
         var interval = IntervalMagnification * LevelDesign.Enemy.SpawnInterval();
         remainingTime = UnityEngine.Random.Range(interval * 0.7f, interval * 1.3f);
     }
 
-    public void Spawn(EnemyController.EnemyType enemyType)
+    public void Spawn(VehicleController.VehicleType enemyType)
     {
         var prefab = enemyPrefabList[UnityEngine.Random.Range(0, enemyPrefabList.Count)];
-        var newEnemy = Instantiate(prefab, this.transform).GetComponent<EnemyController>();
+        var newEnemy = Instantiate(prefab, this.transform).GetComponent<VehicleController>();
         newEnemy.transform.position = this.transform.position;
         newEnemy.transform.localRotation = Quaternion.identity;
+        newEnemy.Type = enemyType;
 
-        newEnemy.FireRate = LevelDesign.Enemy.FireRate();
-        newEnemy.ShellSpeed = LevelDesign.Enemy.ShellSpeed();
-        newEnemy.TankSpeed = LevelDesign.Enemy.TankSpeed();
-
-        if (enemyType == EnemyController.EnemyType.Strong)
+        if (enemyType == VehicleController.VehicleType.Strong)
         {
             newEnemy.transform.localScale *= 1.5f;
             newEnemy.HitPoint = 2;

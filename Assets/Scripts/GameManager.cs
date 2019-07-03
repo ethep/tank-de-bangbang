@@ -8,40 +8,30 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
 
-    public int GameLevel = 0;
+    // Game Object
     public PlayerController PlayerTank;
     public ColliderEventObserver[] Wiper;
     public EnemySpawner[] EnemySpawners;
-    public EnemySpawner BonusSpawners;
+    public EnemySpawner BonusSpawner { get { return EnemySpawners[3]; } }
 
+    // UI
+    public GameObject StartButton;
+
+    // Game Parameter
+    public int GameLevel = 0;
     public int Score = 0;
     public float RemainingGameTime = 0;
     public bool InGame { get { return RemainingGameTime > 0; } }
 
     private int remainingDefeatBonus = LevelDesign.Enemy.BonusRequiredDefeat;
-    private List<EnemyController> spawnedEnemy = new List<EnemyController>();
+    private List<VehicleController> spawnedEnemy = new List<VehicleController>();
 
     private void Awake()
     {
         Instance = this;
 
-        // ワイパーの準備
         Wiper.ToList().ForEach(x => x.ObserveOnTriggerEnter().Subscribe(OnObjectEnterWiper).AddTo(this));
-
-        // プレイヤーの準備
-
-        LevelDesign.Player.FireRateLevel = 0;
-        LevelDesign.Player.ShellSpeedLevel = 0;
-        LevelDesign.Player.TankSpeedLevel = 0;
-
-
-        TouchManager.Instance.ObserveOnTap().Subscribe(_ => PlayerTank.Fire());
-        TouchManager.Instance.ObserveOnDrag().Subscribe(PlayerTank.Move);
         PlayerTank.ObserveOnDead().Subscribe(_ => OnPlayerDead());
-        PlayerTank.FireRate = LevelDesign.Player.FireRate();
-        PlayerTank.TankSpeed = LevelDesign.Player.TankSpeed();
-        PlayerTank.ShellSpeed = LevelDesign.Player.ShellSpeed();
-
         EnemySpawners.ToList().ForEach(x => x.IsAutoSpawn = false);
     }
 
@@ -60,6 +50,10 @@ public class GameManager : MonoBehaviour
 
     public void OnGameStartButton()
     {
+        TouchManager.Instance.ObserveOnTap().Subscribe(_ => PlayerTank.Fire()).AddTo(this);
+        TouchManager.Instance.ObserveOnDrag().Subscribe(PlayerTank.Move).AddTo(this);
+        PlayerTank.Departure();
+        StartButton.SetActive(false);
         StartCoroutine(StageStart());
     }
 
@@ -77,6 +71,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("Game Start!!");
 
         EnemySpawners.ToList().ForEach(x => { x.Initialize(); x.IsAutoSpawn = true; });
+        BonusSpawner.IsAutoSpawn = false;
         RemainingGameTime = LevelDesign.GameTime;
     }
 
@@ -101,25 +96,24 @@ public class GameManager : MonoBehaviour
 
     }
 
-    public void OnEnemySpawn(EnemyController enemy)
+    public void OnEnemySpawn(VehicleController enemy)
     {
         spawnedEnemy.Add(enemy);
     }
 
-    public void OnEnemyDead(EnemyController enemy)
+    public void OnEnemyDead(VehicleController enemy)
     {
         if (--remainingDefeatBonus <= 0)
         {
-            BonusSpawners.Spawn(EnemyController.EnemyType.Bonus);
+            BonusSpawner.Spawn(VehicleController.VehicleType.Bonus);
             remainingDefeatBonus = LevelDesign.Enemy.BonusRequiredDefeat;
         }
 
         var scorePoint = LevelDesign.DefeatScorePoint;
         switch (enemy.Type)
         {
-            case EnemyController.EnemyType.Normal: break;
-            case EnemyController.EnemyType.Strong: scorePoint *= 3; break;
-            case EnemyController.EnemyType.Bonus: scorePoint *= 10; break;
+            case VehicleController.VehicleType.Strong: scorePoint *= 3; break;
+            case VehicleController.VehicleType.Bonus: scorePoint *= 10; break;
         }
         Score += scorePoint;
 

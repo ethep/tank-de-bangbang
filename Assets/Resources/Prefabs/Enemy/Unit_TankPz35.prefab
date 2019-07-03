@@ -61774,6 +61774,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   Animator: {fileID: 95107273803380108}
   SoundSource: {fileID: 82410613660025782}
+  Collider: {fileID: 65858750361679332}
+  Rigidbody: {fileID: 54160986551362204}
+  Type: 1
+  MoveSpeed: 0
+  HitPoint: 1
   FireSound: {fileID: 8300000, guid: 8b3a2843a25f7734d8dcf6b2a9cd4c5c, type: 3}
   IdleSound: {fileID: 8300000, guid: b6a7e39555a7f2e4dae0c4a98ace2458, type: 3}
   TankDead: {fileID: 8300000, guid: 00016a6eb7952c04aab122fbfca27c6b, type: 3}
@@ -61785,11 +61790,9 @@ MonoBehaviour:
   GunEnd: {fileID: 4680034166647474}
   Turret: {fileID: 4845291716700806}
   Barrel: {fileID: 4345284987556426}
-  Collider: {fileID: 65858750361679332}
-  ShellSpeed: 5
-  TankSpeed: 100
-  FireRate: 5
-  HitPoint: 1
+  ShellSpeed: 10
+  TankSpeed: 200
+  FireRate: 4
   currentAnim: 
 --- !u!65 &65858750361679332
 BoxCollider:

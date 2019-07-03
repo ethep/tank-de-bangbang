@@ -6,9 +6,17 @@ public class PlayerController : TankController
 {
     public LoadingTimeGauge LoadingGauge;
 
+    private new void Reset()
+    {
+        base.Reset();
+
+        Type = VehicleType.Player;
+    }
+
     private void Start()
     {
         SetParam();
+        LoadingGauge.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -16,11 +24,22 @@ public class PlayerController : TankController
         LoadingGauge.Value.Value = (Time.time - lastFireTime) / FireRate;
     }
 
+    public override void Move(Vector3 vec)
+    {
+        base.Move(vec);
+    }
+
     public void SetParam()
     {
+        MoveSpeed = LevelDesign.Player.TankSpeed();
         FireRate = LevelDesign.Player.FireRate();
-        TankSpeed = LevelDesign.Player.TankSpeed();
         ShellSpeed = LevelDesign.Player.ShellSpeed();
+    }
+
+    public void Departure()
+    {
+        lastFireTime = Time.time - FireRate;
+        LoadingGauge.gameObject.SetActive(true);
     }
 
     private void LateUpdate()
