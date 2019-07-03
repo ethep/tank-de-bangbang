@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UniRx;
 using System.Linq;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance { get; private set; }
+    public const string HighScoreKey = "high_score";
 
     // Game Object
     public PlayerController PlayerTank;
@@ -17,15 +19,20 @@ public class GameManager : MonoBehaviour
 
     // UI
     public GameObject StartButton;
+    public Text CurrentScoreText;
+    public Text HighScoreText;
+    public Text CurrentLevelText;
+    public Image LevelRemainingTimeGauge;
 
     // Game Parameter
-    public int GameLevel = 0;
-    public int Score = 0;
+    public ReactiveProperty<int> GameLevel = new ReactiveProperty<int>(0);
     public float RemainingGameTime = 0;
     public bool InGame { get { return RemainingGameTime > 0; } }
 
     private int remainingDefeatBonus = LevelDesign.Enemy.BonusRequiredDefeat;
     private List<VehicleController> spawnedEnemy = new List<VehicleController>();
+    private ReactiveProperty<int> currentScore = new ReactiveProperty<int>(0);
+    private ReactiveProperty<int> highScore = new ReactiveProperty<int>(0);
 
     private void Awake()
     {
@@ -34,11 +41,17 @@ public class GameManager : MonoBehaviour
         Wiper.ToList().ForEach(x => x.ObserveOnTriggerEnter().Subscribe(OnObjectEnterWiper).AddTo(this));
         PlayerTank.ObserveOnDead().Subscribe(_ => OnPlayerDead());
         EnemySpawners.ToList().ForEach(x => x.IsAutoSpawn = false);
+        currentScore.Subscribe(x => CurrentScoreText.text = string.Format("Score:{0}", x));
+        highScore.Subscribe(x => HighScoreText.text = string.Format("High  :{0}", x));
+        GameLevel.Subscribe(x => CurrentLevelText.text = string.Format("{0} / {1}", x, LevelDesign.LevelMax));
+
+        highScore.Value = PlayerPrefs.GetInt(HighScoreKey);
     }
 
     private void Update()
     {
-        CloudTransform.Rotate(Vector3.up, 0.2f);
+        LevelRemainingTimeGauge.fillAmount = RemainingGameTime / LevelDesign.GameTime;
+        CloudTransform.Rotate(Vector3.up, 0.1f);
         if (!InGame)
         {
             return;
@@ -61,9 +74,9 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator StageStart()
     {
-        if (GameLevel == 0)
+        if (GameLevel.Value == 0)
         {
-            Score = 0;
+            currentScore.Value = 0;
             Random.InitState(LevelDesign.RandomSeed);
         }
         spawnedEnemy.Clear();
@@ -81,11 +94,17 @@ public class GameManager : MonoBehaviour
     {
         EnemySpawners.ToList().ForEach(x => x.IsAutoSpawn = false);
 
+        if (currentScore.Value > highScore.Value)
+        {
+            highScore.Value = currentScore.Value;
+            PlayerPrefs.SetInt(HighScoreKey, highScore.Value);
+        }
+
         Debug.Log("Begin Stage Ending");
         yield return new WaitForEndOfFrame();
         Debug.Log("End Stage Ending");
 
-        if (++GameLevel > LevelDesign.LevelMax)
+        if (++GameLevel.Value > LevelDesign.LevelMax)
         {
             yield break;
         }
@@ -105,10 +124,13 @@ public class GameManager : MonoBehaviour
 
     public void OnEnemyDead(VehicleController enemy)
     {
-        if (--remainingDefeatBonus <= 0)
+        if (enemy.Type != VehicleController.VehicleType.Bonus)
         {
-            BonusSpawner.Spawn(VehicleController.VehicleType.Bonus);
-            remainingDefeatBonus = LevelDesign.Enemy.BonusRequiredDefeat;
+            if (--remainingDefeatBonus <= 0)
+            {
+                BonusSpawner.Spawn(VehicleController.VehicleType.Bonus);
+                remainingDefeatBonus = LevelDesign.Enemy.BonusRequiredDefeat;
+            }
         }
 
         var scorePoint = LevelDesign.DefeatScorePoint;
@@ -117,7 +139,7 @@ public class GameManager : MonoBehaviour
             case VehicleController.VehicleType.Strong: scorePoint *= 3; break;
             case VehicleController.VehicleType.Bonus: scorePoint *= 10; break;
         }
-        Score += scorePoint;
+        currentScore.Value += scorePoint;
 
         spawnedEnemy.Remove(enemy);
     }

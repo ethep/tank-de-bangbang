@@ -80,7 +80,7 @@ public static class LevelDesign
         // ボーナスは固定速度
         public const float BonusSpeed = 100f;
 
-        public static float Rate { get { return (float)GameManager.Instance.GameLevel / (float)LevelMax; } }
+        public static float Rate { get { return (float)GameManager.Instance.GameLevel.Value / (float)LevelMax; } }
 
         public static float ShellSpeed()
         {
@@ -104,7 +104,7 @@ public static class LevelDesign
 
         public static bool LotteryStrongSpawn()
         {
-            return GameManager.Instance.GameLevel > StrongSpawnLevel && Random.Range(0, StrongSpawnRate) == 0;
+            return GameManager.Instance.GameLevel.Value > StrongSpawnLevel && Random.Range(0, StrongSpawnRate) == 0;
         }
     }
 }
