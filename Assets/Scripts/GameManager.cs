@@ -29,6 +29,7 @@ public class GameManager : MonoBehaviour
     public GameObject TankSelectUI;
     public PlayerController[] SelectTanks;
     public GameObject TankSelectButton;
+    public Animator LevelNotice;
 
     // Game Parameter
     public ReactiveProperty<int> GameLevel = new ReactiveProperty<int>(0);
@@ -91,9 +92,11 @@ public class GameManager : MonoBehaviour
         }
         spawnedEnemy.Clear();
 
-        Debug.Log("Begin Stage Opening!!");
-        yield return new WaitForSeconds(2);
-        Debug.Log("Game Start!!");
+        Debug.Log("aaaaaaaaaaaaa");
+        yield return null;
+        //        yield return LevelNotice.Play();
+        Debug.Log("bbbbbbbbbbbbbb");
+        // yield return new WaitForSeconds(2);
 
         EnemySpawners.ToList().ForEach(x => { x.Initialize(); x.IsAutoSpawn = true; });
         BonusSpawner.IsAutoSpawn = false;
@@ -186,5 +189,10 @@ public class GameManager : MonoBehaviour
         VirtualCamera.LookAt = playerTank.transform;
 
         TankSelectUI.SetActive(false);
+    }
+
+
+    public void OnTestButton()
+    {
     }
 }
