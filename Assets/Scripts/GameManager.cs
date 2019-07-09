@@ -29,7 +29,8 @@ public class GameManager : MonoBehaviour
     public GameObject TankSelectUI;
     public PlayerController[] SelectTanks;
     public GameObject TankSelectButton;
-    public Animator LevelNotice;
+    public SimpleAnimation LevelNoticeAnim;
+    public Text LevelNoticeLabel;
 
     // Game Parameter
     public ReactiveProperty<int> GameLevel = new ReactiveProperty<int>(0);
@@ -92,11 +93,7 @@ public class GameManager : MonoBehaviour
         }
         spawnedEnemy.Clear();
 
-        Debug.Log("aaaaaaaaaaaaa");
-        yield return null;
-        //        yield return LevelNotice.Play();
-        Debug.Log("bbbbbbbbbbbbbb");
-        // yield return new WaitForSeconds(2);
+        yield return NoticeGameLevel();
 
         EnemySpawners.ToList().ForEach(x => { x.Initialize(); x.IsAutoSpawn = true; });
         BonusSpawner.IsAutoSpawn = false;
@@ -113,9 +110,7 @@ public class GameManager : MonoBehaviour
             PlayerPrefs.SetInt(HighScoreKey, highScore.Value);
         }
 
-        Debug.Log("Begin Stage Ending");
         yield return new WaitForEndOfFrame();
-        Debug.Log("End Stage Ending");
 
         if (++GameLevel.Value > LevelDesign.LevelMax)
         {
@@ -191,8 +186,24 @@ public class GameManager : MonoBehaviour
         TankSelectUI.SetActive(false);
     }
 
-
-    public void OnTestButton()
+    public IEnumerator NoticeGameLevel()
     {
+        LevelNoticeLabel.text = GameLevel.Value == LevelDesign.LevelMax ?
+            "Final Level" : string.Format("Level {0}", GameLevel.Value + 1);
+        LevelNoticeAnim.Stop("Default");
+        LevelNoticeAnim.Play("Default");
+
+        yield return new WaitForSeconds(2f);
+        /*
+        while (LevelNoticeAnim.isPlaying)
+        {
+            yield return null;
+        }
+        */
+    }
+
+    public IEnumerator NoticeStageScore()
+    {
+        yield return null;
     }
 }
