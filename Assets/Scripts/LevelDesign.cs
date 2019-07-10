@@ -6,7 +6,8 @@ public static class LevelDesign
 {
     public const float GameTime = 30f;
     public const int LevelMax = 5;
-    public const int DefeatScorePoint = 100;
+    public const int DefeatTankPoint = 100;
+    public const int DefeatBponusPoint = 1000;
 
     public static int RandomSeed
     {

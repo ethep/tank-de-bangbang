@@ -31,6 +31,7 @@ public class GameManager : MonoBehaviour
     public GameObject TankSelectButton;
     public SimpleAnimation LevelNoticeAnim;
     public Text LevelNoticeLabel;
+    public StageClearWindow StageClearWindow;
 
     // Game Parameter
     public ReactiveProperty<int> GameLevel = new ReactiveProperty<int>(0);
@@ -43,6 +44,8 @@ public class GameManager : MonoBehaviour
     private ReactiveProperty<int> currentScore = new ReactiveProperty<int>(0);
     private ReactiveProperty<int> highScore = new ReactiveProperty<int>(0);
 
+    private int stageScore = 0;
+
     private void Awake()
     {
         Instance = this;
@@ -54,6 +57,7 @@ public class GameManager : MonoBehaviour
         GameLevel.Subscribe(x => CurrentLevelText.text = string.Format("{0} / {1}", x, LevelDesign.LevelMax)).AddTo(this);
 
         highScore.Value = PlayerPrefs.GetInt(HighScoreKey);
+        StageClearWindow.gameObject.SetActive(false);
     }
 
     private void Update()
@@ -86,6 +90,7 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator StageStart()
     {
+        stageScore = 0;
         if (GameLevel.Value == 0)
         {
             currentScore.Value = 0;
@@ -102,15 +107,23 @@ public class GameManager : MonoBehaviour
 
     private IEnumerator StageEnd()
     {
+        foreach (var x in GameObject.FindGameObjectsWithTag("Shell"))
+        {
+            Destroy(x);
+        }
+        spawnedEnemy.ForEach(x => Destroy(x.gameObject));
         EnemySpawners.ToList().ForEach(x => x.IsAutoSpawn = false);
 
-        if (currentScore.Value > highScore.Value)
+        bool isHighScoreUpdate = currentScore.Value > highScore.Value;
+        if (isHighScoreUpdate)
         {
             highScore.Value = currentScore.Value;
             PlayerPrefs.SetInt(HighScoreKey, highScore.Value);
         }
 
-        yield return new WaitForEndOfFrame();
+        StageClearWindow.Show(stageScore, currentScore.Value, isHighScoreUpdate);
+        yield return new WaitForSeconds(1.7f);
+        StageClearWindow.gameObject.SetActive(false);
 
         if (++GameLevel.Value > LevelDesign.LevelMax)
         {
@@ -141,12 +154,13 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        var scorePoint = LevelDesign.DefeatScorePoint;
+        var scorePoint = LevelDesign.DefeatTankPoint;
         switch (enemy.Type)
         {
             case VehicleController.VehicleType.Strong: scorePoint *= 3; break;
             case VehicleController.VehicleType.Bonus: scorePoint *= 10; break;
         }
+        stageScore += scorePoint;
         currentScore.Value += scorePoint;
 
         spawnedEnemy.Remove(enemy);
