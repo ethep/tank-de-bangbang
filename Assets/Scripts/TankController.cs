@@ -23,8 +23,6 @@ public class TankController : VehicleController
     public float ShellSpeed = LevelDesign.Player.ShellSpeedMin;
     public float FireRate = LevelDesign.Player.FireRateMin;
 
-    protected Rigidbody tankRigid;
-    [SerializeField]
     protected string currentAnim;
     protected float lastFireTime;
     protected Vector3 initialBarrelPos;
@@ -64,8 +62,7 @@ public class TankController : VehicleController
 
     void SetMoveAnimation()
     {
-        tankRigid = GetComponent<Rigidbody>();
-        tankRigid.ObserveEveryValueChanged(x => x.velocity)
+        Rigidbody.ObserveEveryValueChanged(x => x.velocity)
             .Where(x => !IsDead)
             .Subscribe(x =>
             {
@@ -93,12 +90,12 @@ public class TankController : VehicleController
                     Animator.SetBool("MoveBackStart", true);
                 }
             })
-            .AddTo(tankRigid);
+            .AddTo(Rigidbody);
     }
 
     public void Fire()
     {
-        if (IsDead)
+        if (IsDead || Pause)
         {
             return;
         }
@@ -138,11 +135,6 @@ public class TankController : VehicleController
 
     protected override void Damage(int damage)
     {
-        if (IsDead)
-        {
-            return;
-        }
-
         HitPoint -= damage;
         if (HitPoint <= 0)
         {
@@ -159,7 +151,7 @@ public class TankController : VehicleController
             Explosion.Play();
 
             Collider.enabled = false;
-            tankRigid.isKinematic = true;
+            Rigidbody.isKinematic = true;
 
             StartCoroutine(DeadWipe());
             IEnumerator DeadWipe()

@@ -7,7 +7,8 @@ public static class LevelDesign
     public const float GameTime = 30f;
     public const int LevelMax = 5;
     public const int DefeatTankPoint = 100;
-    public const int DefeatBponusPoint = 1000;
+    public const int DefeatStrongPoint = 300;
+    public const int DefeatBonusPoint = 1000;
 
     public static int RandomSeed
     {
@@ -74,7 +75,7 @@ public static class LevelDesign
         public const float SpawnIntervalMin = 13f;
         public const float SpawnIntervalMax = 2f;
         // 強力な個体が出現するようになるレベル
-        public const int StrongSpawnLevel = 5;
+        public const int StrongSpawnLevel = 1;
         public const int StrongSpawnRate = 30;
         // ボーナスが出現する撃破数
         public const int BonusRequiredDefeat = 1;

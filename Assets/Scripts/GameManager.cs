@@ -36,15 +36,14 @@ public class GameManager : MonoBehaviour
     // Game Parameter
     public ReactiveProperty<int> GameLevel = new ReactiveProperty<int>(0);
     public float RemainingGameTime = 0;
-    public bool InGame { get { return RemainingGameTime > 0; } }
 
     public PlayerController playerTank;
     private int remainingDefeatBonus = LevelDesign.Enemy.BonusRequiredDefeat;
     private List<VehicleController> spawnedEnemy = new List<VehicleController>();
     private ReactiveProperty<int> currentScore = new ReactiveProperty<int>(0);
     private ReactiveProperty<int> highScore = new ReactiveProperty<int>(0);
-
-    private int stageScore = 0;
+    private bool isInStage = false;
+    private int selectTankIndex = 0;
 
     private void Awake()
     {
@@ -58,84 +57,107 @@ public class GameManager : MonoBehaviour
 
         highScore.Value = PlayerPrefs.GetInt(HighScoreKey);
         StageClearWindow.gameObject.SetActive(false);
+        GameInit();
+        ResetPlayerTank();
     }
 
     private void Update()
     {
         LevelRemainingTimeGauge.fillAmount = RemainingGameTime / LevelDesign.GameTime;
         CloudTransform.Rotate(Vector3.up, 0.1f);
-        if (!InGame)
+        if (!isInStage)
         {
             return;
         }
 
         if ((RemainingGameTime -= Time.deltaTime) <= 0)
         {
-            StartCoroutine(StageEnd());
+            StageEnd();
         }
     }
 
-    public void OnGameStartButton()
+    private void ResetPlayerTank()
     {
+        playerTank.LoadingGauge = LoadingGauge;
+        LoadingGauge.SetTarget(playerTank.transform);
+        playerTank.enabled = true;
+
+        playerTank.transform.localPosition = Vector3.zero;
+        playerTank.transform.localRotation = Quaternion.identity;
+
+        VirtualCamera.Follow = playerTank.transform;
+        VirtualCamera.LookAt = playerTank.transform;
+
         TouchManager.Instance.ObserveOnTap().Subscribe(_ => playerTank.Fire()).AddTo(playerTank);
         TouchManager.Instance.ObserveOnDrag().Subscribe(playerTank.Move).AddTo(playerTank);
-        playerTank.ObserveOnDead().Subscribe(_ => OnPlayerDead()).AddTo(playerTank);
+        playerTank.ObserveOnDead().Subscribe(_ => StartCoroutine(GameEnd(false))).AddTo(playerTank);
+    }
+
+    private void GameInit()
+    {
+        spawnedEnemy.ForEach(x => Destroy(x.gameObject));
+        spawnedEnemy.Clear();
+
+        OnTapTankSelect(selectTankIndex);
         playerTank.Departure();
 
+        StartButton.SetActive(true);
+        TankSelectButton.SetActive(false);
+    }
+
+    public void GameStart()
+    {
         StartButton.SetActive(false);
         TankSelectButton.SetActive(false);
 
+        playerTank.Departure();
         StartCoroutine(StageStart());
+    }
+
+    private IEnumerator GameEnd(bool isClear)
+    {
+        EnemySpawners.ToList().ForEach(x => x.IsAutoSpawn = false);
+        spawnedEnemy.ForEach(x => x.Pause = true);
+        foreach (var x in GameObject.FindGameObjectsWithTag("Shell"))
+        {
+            Destroy(x);
+        }
+
+        yield return StageClearWindow.Show(currentScore.Value, highScore.Value);
+
+        GameInit();
     }
 
     private IEnumerator StageStart()
     {
-        stageScore = 0;
         if (GameLevel.Value == 0)
         {
             currentScore.Value = 0;
             Random.InitState(LevelDesign.RandomSeed);
         }
-        spawnedEnemy.Clear();
 
         yield return NoticeGameLevel();
 
         EnemySpawners.ToList().ForEach(x => { x.Initialize(); x.IsAutoSpawn = true; });
         BonusSpawner.IsAutoSpawn = false;
         RemainingGameTime = LevelDesign.GameTime;
+        isInStage = true;
     }
 
-    private IEnumerator StageEnd()
+    private void StageEnd()
     {
-        foreach (var x in GameObject.FindGameObjectsWithTag("Shell"))
-        {
-            Destroy(x);
-        }
-        spawnedEnemy.ForEach(x => Destroy(x.gameObject));
+        isInStage = false;
         EnemySpawners.ToList().ForEach(x => x.IsAutoSpawn = false);
 
-        bool isHighScoreUpdate = currentScore.Value > highScore.Value;
-        if (isHighScoreUpdate)
+        if (GameLevel.Value + 1 > LevelDesign.LevelMax)
         {
-            highScore.Value = currentScore.Value;
-            PlayerPrefs.SetInt(HighScoreKey, highScore.Value);
+            // ボーナスとして、画面内の敵を全てダメージを与える
+            StartCoroutine(GameEnd(true));
+            return;
         }
 
-        StageClearWindow.Show(stageScore, currentScore.Value, isHighScoreUpdate);
-        yield return new WaitForSeconds(1.7f);
-        StageClearWindow.gameObject.SetActive(false);
-
-        if (++GameLevel.Value > LevelDesign.LevelMax)
-        {
-            yield break;
-        }
-
+        GameLevel.Value++;
         StartCoroutine(StageStart());
-    }
-
-    private void OnPlayerDead()
-    {
-
     }
 
     public void OnEnemySpawn(VehicleController enemy)
@@ -154,16 +176,26 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        var scorePoint = LevelDesign.DefeatTankPoint;
         switch (enemy.Type)
         {
-            case VehicleController.VehicleType.Strong: scorePoint *= 3; break;
-            case VehicleController.VehicleType.Bonus: scorePoint *= 10; break;
+            case VehicleController.VehicleType.Enemy: AddScore(LevelDesign.DefeatTankPoint); break;
+            case VehicleController.VehicleType.Strong: AddScore(LevelDesign.DefeatStrongPoint); break;
+            case VehicleController.VehicleType.Bonus: AddScore(LevelDesign.DefeatBonusPoint); break;
         }
-        stageScore += scorePoint;
-        currentScore.Value += scorePoint;
 
         spawnedEnemy.Remove(enemy);
+    }
+
+    private void AddScore(int point)
+    {
+        currentScore.Value += point;
+
+        bool isHighScoreUpdate = currentScore.Value > highScore.Value;
+        if (isHighScoreUpdate)
+        {
+            highScore.Value = currentScore.Value;
+            PlayerPrefs.SetInt(HighScoreKey, highScore.Value);
+        }
     }
 
     private void OnObjectEnterWiper(Collider other)
@@ -182,20 +214,13 @@ public class GameManager : MonoBehaviour
 
     public void OnTapTankSelect(int index)
     {
+        selectTankIndex = index;
         if (playerTank != null)
         {
             Destroy(playerTank.gameObject);
         }
         playerTank = Instantiate(SelectTanks[index], PlayerTankPos);
-        playerTank.LoadingGauge = LoadingGauge;
-        LoadingGauge.SetTarget(playerTank.transform);
-        playerTank.enabled = true;
-
-        playerTank.transform.localPosition = Vector3.zero;
-        playerTank.transform.localRotation = Quaternion.identity;
-
-        VirtualCamera.Follow = playerTank.transform;
-        VirtualCamera.LookAt = playerTank.transform;
+        ResetPlayerTank();
 
         TankSelectUI.SetActive(false);
     }
@@ -203,7 +228,7 @@ public class GameManager : MonoBehaviour
     public IEnumerator NoticeGameLevel()
     {
         LevelNoticeLabel.text = GameLevel.Value == LevelDesign.LevelMax ?
-            "Final Level" : string.Format("Level {0}", GameLevel.Value + 1);
+            "Final" : string.Format("Level {0}", GameLevel.Value + 1);
         LevelNoticeAnim.Stop("Default");
         LevelNoticeAnim.Play("Default");
 

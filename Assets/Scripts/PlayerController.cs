@@ -41,7 +41,7 @@ public class PlayerController : TankController
 
     public void Departure()
     {
-        tankRigid.isKinematic = false;
+        Rigidbody.isKinematic = false;
         lastFireTime = Time.time - FireRate;
         LoadingGauge.gameObject.SetActive(true);
     }

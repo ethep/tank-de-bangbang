@@ -24,7 +24,7 @@ public class EnemySpawner : MonoBehaviour
 
     public void Initialize()
     {
-        remainingTime = FirstInterval;
+        remainingTime = UnityEngine.Random.Range(FirstInterval * 0.5f, FirstInterval);
     }
 
     private void Update()

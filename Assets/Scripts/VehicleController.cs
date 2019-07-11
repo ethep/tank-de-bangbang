@@ -26,6 +26,7 @@ public abstract class VehicleController : MonoBehaviour
     public float MoveSpeed;
     public int HitPoint = 1;
     public bool IsDead { get { return HitPoint <= 0; } }
+    public bool Pause { get; set; } = false;
 
     #region UniRx
     protected Subject<Unit> OnDead = new Subject<Unit>();
@@ -45,7 +46,7 @@ public abstract class VehicleController : MonoBehaviour
 
     public virtual void Move(Vector3 vec)
     {
-        if (IsDead)
+        if (IsDead || Pause)
         {
             return;
         }
@@ -56,6 +57,11 @@ public abstract class VehicleController : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
+        if (IsDead || Pause)
+        {
+            return;
+        }
+
         if (!other.CompareTag("Shell"))
         {
             return;
